@@ -1,20 +1,23 @@
 $(function() {
   $('#add_todo').submit(function() {
     appendTodo();
-    return false;
+    saveTaskRemotely();
+    return false; // disable default form action
   });
 
-  bindComplete();
+  bindComplete($('.todos input[type="checkbox"]'));
 
-  bindUnComplete();
+  bindUnComplete($('.completed_todos input[type="checkbox"]'));
 });
 
 function bindComplete(elements) {
-  $('.todos input[type="checkbox"]').each(function() {
+  elements.each(function() {
     $(this).click(function() {
       var input = $(this);
       var parent = input.parent().parent();
       parent.slideToggle('fast', function() {
+        input.unbind(); // remove all events binding
+        bindUnComplete(input);
         $(this).appendTo('.completed_todos').slideToggle();
       });
     });
@@ -22,11 +25,13 @@ function bindComplete(elements) {
 }
 
 function bindUnComplete(elements) {
-  $('.completed_todos input[type="checkbox"]').each(function() {
+  elements.each(function() {
     $(this).click(function() {
       var input = $(this);
       var parent = input.parent().parent();
       parent.slideToggle('fast', function() {
+        input.unbind();
+        bindComplete(input);
         $(this).appendTo('.todos').slideToggle();
       });
     });
@@ -47,6 +52,42 @@ function appendTodo() {
     span.appendTo(p);
     p.appendTo(div);
     div.appendTo('.todos');
-    todoInput.val('');
   }
 }
+
+function saveTaskRemotely() {
+  var todoInput = $('#todo');
+  var value = todoInput.val();
+  todoInput.val('');
+  if(value) {
+    $.ajax({
+      url: '/tasks',
+      type: 'post',
+      data: "task[title]=" + value,
+      success: function() {
+        console.log('success');
+      },
+      error: function() {
+        console.log('error');
+      }
+    });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
